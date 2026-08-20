@@ -8,11 +8,17 @@
 import { evaluate, evaluateAsync, getClient } from '../connection.js';
 
 // TV renamed the right-rail button: current builds use data-name="base" with
-// aria-label "Watchlist, details, and news"; older builds used
-// data-name="base-watchlist-widget-button" / aria-label "Watchlist".
-const WL_BUTTON_JS = `(document.querySelector('[data-name="base-watchlist-widget-button"]')
+// aria-label "Watchlist, details, and news" (EN) / "觀察清單、詳情和新聞" (ZH);
+// older builds used data-name="base-watchlist-widget-button" / aria "Watchlist".
+// data-name and class selectors are locale-independent (TradingView keeps them
+// English even in a localized UI), so they are tried first; the aria-labels are
+// matched in both EN and ZH so the button resolves on either language setting.
+const WL_BUTTON_JS = `(document.querySelector('[data-name="base"]')
+  || document.querySelector('[data-name="base-watchlist-widget-button"]')
   || document.querySelector('[aria-label="Watchlist, details, and news"]')
-  || document.querySelector('[aria-label^="Watchlist"]'))`;
+  || document.querySelector('[aria-label="觀察清單、詳情和新聞"]')
+  || document.querySelector('[aria-label^="Watchlist"]')
+  || document.querySelector('[aria-label^="觀察清單"]'))`;
 
 // The watchlist widget lazy-loads after the panel opens; a fixed 500ms wait
 // raced it (issue #164). Poll until its Add-symbol button or rows exist.
@@ -123,7 +129,9 @@ export async function add({ symbol }) {
     (function() {
       var btn = document.querySelector('[data-name="add-symbol-button"]')
         || document.querySelector('[aria-label="Add symbol"]')
-        || document.querySelector('[aria-label*="Add symbol"]');
+        || document.querySelector('[aria-label*="Add symbol"]')
+        || document.querySelector('[aria-label="新增商品"]')
+        || document.querySelector('[aria-label*="新增商品"]');
       if (!btn || btn.offsetParent === null) return { found: false };
       btn.click();
       return { found: true };

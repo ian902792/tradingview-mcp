@@ -90,7 +90,18 @@ npm install
 
 ### 2. Launch TradingView with CDP
 
-TradingView Desktop must be running with Chrome DevTools Protocol enabled on port 9222.
+TradingView Desktop must be running with Chrome DevTools Protocol enabled on port 9222 (default).
+
+> **CDP port is configurable.** Use `TV_CDP_PORT` (or `CDP_PORT`) to point at a
+> custom port — this works for the MCP server, the CLI, the E2E tests, and the
+> `scripts/pine_*.js` helpers alike:
+> ```bash
+> TV_CDP_PORT=9223 tv health_check
+> TV_CDP_PORT=9223 npm run test:e2e
+> ```
+> On the author's Mac the live TradingView Desktop listens on **9223** while the
+> default **9222** is the CloakBrowser automation instance, so every invocation
+> here sets `TV_CDP_PORT=9223`.
 
 **Mac:**
 ```bash
@@ -350,11 +361,11 @@ npm test
 ## Architecture
 
 ```
-Claude Code  ←→  MCP Server (stdio)  ←→  CDP (port 9222)  ←→  TradingView Desktop (Electron)
+Claude Code  ←→  MCP Server (stdio)  ←→  CDP (default port 9222)  ←→  TradingView Desktop (Electron)
 ```
 
 - **Transport**: MCP over stdio (84 tools) + CLI (`tv` command, 30 commands with 66 subcommands)
-- **Connection**: Chrome DevTools Protocol on localhost:9222
+- **Connection**: Chrome DevTools Protocol on localhost, default port 9222 (override with `TV_CDP_PORT` / `CDP_PORT`; the author's desktop runs on 9223)
 - **Streaming**: Poll-and-diff loop with deduplication, JSONL output to stdout
 - **No dependencies** beyond `@modelcontextprotocol/sdk` and `chrome-remote-interface`
 

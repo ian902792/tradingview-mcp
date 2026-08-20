@@ -1,6 +1,7 @@
 /**
  * Comprehensive E2E tests for all 70 TradingView MCP tools.
- * Requires TradingView Desktop running with --remote-debugging-port=9222
+ * Requires TradingView Desktop running with CDP enabled (default port 9222;
+ * override with TV_CDP_PORT, e.g. 9223 on the author's desktop).
  *
  * Run: node --test tests/e2e.test.js
  *
@@ -22,6 +23,11 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import CDP from 'chrome-remote-interface';
+
+// CDP port — overridable via TV_CDP_PORT / CDP_PORT (the author's desktop
+// instance listens on 9223, not the default 9222). Run with:
+//   TV_CDP_PORT=9223 npm run test:e2e
+const CDP_PORT = Number(process.env.TV_CDP_PORT || process.env.CDP_PORT) || 9222;
 
 let client;
 let Runtime;
@@ -71,11 +77,11 @@ describe('TradingView MCP — Full E2E (70 tools)', () => {
 
   before(async () => {
     try {
-      const targets = await CDP.List({ host: 'localhost', port: 9222 });
+      const targets = await CDP.List({ host: 'localhost', port: CDP_PORT });
       const chartTarget = targets.find(t => t.url && t.url.includes('tradingview.com/chart'));
       if (!chartTarget) throw new Error('No TradingView chart target found');
 
-      client = await CDP({ host: 'localhost', port: 9222, target: chartTarget.id });
+      client = await CDP({ host: 'localhost', port: CDP_PORT, target: chartTarget.id });
       await client.Runtime.enable();
       await client.Page.enable();
       await client.DOM.enable();
@@ -83,7 +89,7 @@ describe('TradingView MCP — Full E2E (70 tools)', () => {
       Input = client.Input;
       Page = client.Page;
     } catch (err) {
-      console.error('Cannot connect to TradingView. Make sure it is running with --remote-debugging-port=9222');
+      console.error(`Cannot connect to TradingView. Make sure it is running with --remote-debugging-port=${CDP_PORT}`);
       process.exit(1);
     }
   });

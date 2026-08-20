@@ -97,7 +97,12 @@ Use the `tv_health_check` tool. Expected response:
 }
 ```
 
-If `cdp_connected: false`, TradingView is not running with `--remote-debugging-port=9222`.
+If `cdp_connected: false`, TradingView is not running with `--remote-debugging-port=9222` (the default). The port is configurable: if TradingView Desktop is listening on a different CDP port (e.g. **9223** on the author's Mac — the default 9222 there is CloakBrowser), export `TV_CDP_PORT` (or `CDP_PORT`) before running anything:
+
+```bash
+export TV_CDP_PORT=9223
+tv health_check
+```
 
 ## Step 6: Install CLI (Optional)
 
@@ -114,7 +119,7 @@ Then `tv status`, `tv quote`, `tv pine compile`, etc. work from anywhere.
 
 | Problem | Solution |
 |---------|----------|
-| `cdp_connected: false` | Launch TradingView with `--remote-debugging-port=9222` |
+| `cdp_connected: false` | Launch TradingView with `--remote-debugging-port=9222`, or set `TV_CDP_PORT` to the port TradingView actually listens on (9223 on the author's Mac) |
 | Windows: "Access is denied" launching from `WindowsApps` | Use `tv_launch` (auto copy-fallback) or the manual copy snippet in Step 3 — never `icacls` on WindowsApps |
 | `ECONNREFUSED` | TradingView isn't running or port 9222 is blocked |
 | MCP server not showing in Claude Code | Check `~/.claude/.mcp.json` syntax, restart Claude Code |

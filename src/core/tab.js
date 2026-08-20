@@ -12,6 +12,23 @@
 import CDP from 'chrome-remote-interface';
 import { getClient, reconnectTo, CDP_HOST, CDP_PORT } from '../connection.js';
 
+// The landing page (layout picker) new-tab title is localized. Match the
+// common EN and ZH (simplified/traditional) variants so tab detection stays
+// language-neutral on both English and Chinese TradingView builds.
+function isNewTabTitle(title) {
+  return /^(new tab|新标签页|新分頁|新页面)$/i.test((title || '').trim());
+}
+
+// Strip the localized page subtitle so tab_list returns just the chart name.
+// EN: "Live stock, futures, forex and bitcoin charts on TradingView"
+// ZH: "TradingView 提供即時股票、指數、期貨、外匯與比特幣圖表"
+function cleanTabTitle(title) {
+  const t = title || '';
+  if (/^Live stock.*charts on /i.test(t)) return t.replace(/^Live stock.*charts on /i, '');
+  if (/^TradingView 提供/.test(t)) return '';
+  return t;
+}
+
 /**
  * List all open chart tabs (CDP page targets).
  */
@@ -22,11 +39,11 @@ export async function list() {
   // Chart tabs plus new-tab landing pages (layout picker), so every tab in the
   // top bar is listable and switchable.
   const tabs = targets
-    .filter(t => t.type === 'page' && (/tradingview\.com\/chart/i.test(t.url) || t.title === 'New tab'))
+    .filter(t => t.type === 'page' && (/tradingview\.com\/chart/i.test(t.url) || isNewTabTitle(t.title)))
     .map((t, i) => ({
       index: i,
       id: t.id,
-      title: t.title.replace(/^Live stock.*charts on /, ''),
+      title: cleanTabTitle(t.title),
       url: t.url,
       chart_id: t.url.match(/\/chart\/([^/?]+)/)?.[1] || null,
       is_chart: /tradingview\.com\/chart/i.test(t.url),
@@ -87,7 +104,7 @@ async function isTargetVisible(targetId) {
 async function findLandingTarget() {
   const resp = await fetch(`http://${CDP_HOST}:${CDP_PORT}/json/list`);
   const targets = await resp.json();
-  return targets.find(t => t.type === 'page' && t.title === 'New tab') || null;
+  return targets.find(t => t.type === 'page' && isNewTabTitle(t.title)) || null;
 }
 
 /** Run fn with an eval helper attached to a specific target. */
@@ -186,7 +203,9 @@ export async function newTab({ layout, name } = {}) {
           var btns = scope.querySelectorAll('button');
           for (var i = 0; i < btns.length; i++) {
             var t = (btns[i].textContent || '').trim().toLowerCase();
-            if (t === 'create' && !btns[i].disabled) { btns[i].click(); return true; }
+            // "Create"/"建立"/"創建" — bilingual so the layout dialog works on
+            // both English and Chinese TradingView.
+            if ((t === 'create' || t === '建立' || t === '創建') && !btns[i].disabled) { btns[i].click(); return true; }
           }
           return false;
         })()

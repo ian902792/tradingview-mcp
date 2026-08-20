@@ -63,22 +63,46 @@ export async function openPanel({ panel, action }) {
     return { success: true, panel, action, was_open: result?.was_open ?? false, performed: result?.performed ?? 'unknown' };
   } else {
     // Newer TV builds renamed the right-rail buttons (watchlist is now
-    // data-name="base", aria "Watchlist, details, and news"; alerts is
-    // data-name="alerts") — keep legacy selectors as fallbacks.
+    // data-name="base", aria "Watchlist, details, and news" / "觀察清單、詳情和新聞";
+    // alerts is data-name="alerts", aria "Alerts" / "快訊") — keep legacy
+    // selectors and both EN/ZH aria-labels as fallbacks. data-name is
+    // locale-independent and matched first. The trading panel button carries no
+    // data-name on current builds and is found by its visible text
+    // ("Trading Panel" / "交易"), so it falls through to a bilingual text scan.
     const selectorMap = {
-      'watchlist': { dataNames: ['base-watchlist-widget-button', 'base'], ariaLabels: ['Watchlist', 'Watchlist, details, and news'] },
-      'alerts': { dataNames: ['alerts-button', 'alerts'], ariaLabels: ['Alerts'] },
-      'trading': { dataNames: ['trading-button'], ariaLabels: ['Trading Panel'] },
+      'watchlist': {
+        dataNames: ['base', 'base-watchlist-widget-button'],
+        ariaLabels: ['Watchlist', 'Watchlist, details, and news', '觀察清單', '觀察清單、詳情和新聞'],
+      },
+      'alerts': {
+        dataNames: ['alerts', 'alerts-button'],
+        ariaLabels: ['Alerts', '快訊'],
+      },
+      'trading': {
+        dataNames: ['trading', 'trading-button'],
+        ariaLabels: ['Trading Panel', '交易面板'],
+        texts: ['Trading Panel', '交易'],
+      },
     };
     const sel = selectorMap[panel];
     const result = await evaluate(`
       (function() {
         var dataNames = ${JSON.stringify(sel.dataNames)};
         var ariaLabels = ${JSON.stringify(sel.ariaLabels)};
+        var texts = ${JSON.stringify(sel.texts || [])};
         var action = ${JSON.stringify(action)};
         var btn = null;
         for (var d = 0; d < dataNames.length && !btn; d++) btn = document.querySelector('[data-name="' + dataNames[d] + '"]');
         for (var a = 0; a < ariaLabels.length && !btn; a++) btn = document.querySelector('[aria-label="' + ariaLabels[a] + '"]');
+        if (!btn && texts.length) {
+          var all = document.querySelectorAll('button, [role="button"]');
+          for (var i = 0; i < all.length && !btn; i++) {
+            var t = (all[i].textContent || '').trim();
+            for (var k = 0; k < texts.length; k++) {
+              if (t === texts[k] || t.toLowerCase() === texts[k].toLowerCase()) { btn = all[i]; break; }
+            }
+          }
+        }
         if (!btn) return { error: 'Button not found for panel: ' + ${JSON.stringify(panel)} };
         var isActive = btn.getAttribute('aria-pressed') === 'true' || btn.classList.contains('isActive') || btn.classList.toString().indexOf('active') !== -1 || btn.classList.toString().indexOf('Active') !== -1;
         var rightArea = document.querySelector('[class*="layout__area--right"]');
@@ -156,7 +180,7 @@ export async function layoutSwitch({ name }) {
       var btns = document.querySelectorAll('button');
       for (var i = 0; i < btns.length; i++) {
         var text = btns[i].textContent.trim();
-        if (/open anyway|don't save|discard/i.test(text)) {
+        if (/open anyway|don't save|discard|不儲存|不保存|仍然開啟|仍然打开|放棄|放弃/i.test(text)) {
           btns[i].click();
           return true;
         }

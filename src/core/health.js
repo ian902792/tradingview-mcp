@@ -168,10 +168,16 @@ export async function uiState() {
       }
       ui.key_buttons = {};
       var keyLabels = {
-        'add_to_chart': /add to chart/i, 'save_and_add': /save and add/i,
-        'update_on_chart': /update on chart/i, 'save': /^Save(Save)?$/,
-        'saved': /^Saved/, 'publish_script': /publish script/i,
-        'compile_errors': /error/i, 'unsaved_version': /unsaved version/i,
+        // Bilingual EN+ZH patterns so the Pine editor button map resolves on
+        // both English and Chinese TradingView builds.
+        'add_to_chart': /add to chart|新增到圖表|添加至圖表|新增到图/i,
+        'save_and_add': /save and add|儲存並新增|保存并添加|儲存並添加/i,
+        'update_on_chart': /update on chart|更新到圖表|更新至圖表/i,
+        'save': /^save(save)?$|^儲存$|^保存$/i,
+        'saved': /^saved|^已儲存|^已保存/i,
+        'publish_script': /publish script|發佈指令碼|发布脚本|發佈腳本/i,
+        'compile_errors': /error|錯誤|错误/i,
+        'unsaved_version': /unsaved version|未儲存的版本|未保存的版本/i,
       };
       for (var i = 0; i < btns.length; i++) {
         var b = btns[i];
