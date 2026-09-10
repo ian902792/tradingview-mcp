@@ -15,8 +15,12 @@ const CONDITION_TYPE_MAP = {
   less_than: 'less', less: 'less', below: 'less', '<': 'less',
 };
 
-export async function create({ condition, price, message }) {
+export async function create({ condition, price, message, expiration_days }) {
   const p = requireFinite(price, 'price');
+  // Default 30 days matches TradingView's own UI default. Stop-loss alerts placed by the
+  // stock-screening sync need to outlive a 30-day hold, so callers may pass a longer horizon.
+  const days = Number.isFinite(Number(expiration_days)) && Number(expiration_days) > 0
+    ? Number(expiration_days) : 30;
   const condType = CONDITION_TYPE_MAP[String(condition || 'crossing').trim().toLowerCase()] || 'cross';
 
   return evaluate(`
@@ -42,7 +46,7 @@ export async function create({ condition, price, message }) {
           popup: true, auto_deactivate: true,
           email: false, sms_over_email: false, mobile_push: true,
           web_hook: null, name: null,
-          expiration: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+          expiration: new Date(Date.now() + ${JSON.stringify(days)} * 24 * 3600 * 1000).toISOString(),
           active: true, ignore_warnings: true
         };
         var x = new XMLHttpRequest();

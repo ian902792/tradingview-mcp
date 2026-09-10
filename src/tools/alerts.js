@@ -7,8 +7,9 @@ export function registerAlertTools(server) {
     condition: z.string().describe('Alert condition: "crossing", "greater_than", or "less_than"'),
     price: z.coerce.number().describe('Price level for the alert'),
     message: z.string().optional().describe('Alert message'),
-  }, async ({ condition, price, message }) => {
-    try { return jsonResult(await core.create({ condition, price, message })); }
+    expiration_days: z.coerce.number().optional().describe('Expire after N days (default 30)'),
+  }, async ({ condition, price, message, expiration_days }) => {
+    try { return jsonResult(await core.create({ condition, price, message, expiration_days })); }
     catch (err) { return jsonResult({ success: false, error: err.message }, true); }
   });
 

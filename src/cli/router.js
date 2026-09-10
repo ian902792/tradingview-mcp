@@ -131,8 +131,10 @@ export async function run(argv) {
 async function execute(handler, values, positionals) {
   try {
     const result = await handler(values, positionals);
-    console.log(JSON.stringify(result, null, 2));
-    process.exit(0);
+    // Do not `process.exit()` right after `console.log`: when stdout is a pipe Node writes
+    // asynchronously, and exiting first truncates large payloads. `alert list` with ~100 alerts
+    // is ~64 KB and was being cut mid-string, which downstream parsers read as "no alerts".
+    process.stdout.write(JSON.stringify(result, null, 2) + '\n', () => process.exit(0));
   } catch (err) {
     handleError(err);
   }
