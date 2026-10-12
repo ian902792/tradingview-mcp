@@ -1,0 +1,244 @@
+{
+  "id": "pLRH94if",
+  "title": "STL 美股 Mark Minervini",
+  "screener_key": "stock",
+  "market_settings": {
+    "markets": [
+      "america"
+    ],
+    "is_primary_listing": false
+  },
+  "active_column_set": "overview",
+  "sort_column": {
+    "id": "Volume",
+    "params": {
+      "resolution": "TimeResolution1D"
+    }
+  },
+  "filters": [
+    {
+      "left": {
+        "column": {
+          "id": "Price",
+          "params": {}
+        }
+      },
+      "right": {
+        "column": {
+          "id": "Low",
+          "params": {
+            "timebased": "Interval52Weeks"
+          }
+        }
+      },
+      "operation": {
+        "type": "abovePercent",
+        "params": {
+          "offsetRangeId": "offset_range_30"
+        }
+      },
+      "target": "Low",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "MarketCap",
+          "params": {}
+        }
+      },
+      "right": {
+        "left": 1000000000,
+        "right": null
+      },
+      "operation": {
+        "type": "between"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Price",
+          "params": {}
+        }
+      },
+      "right": {
+        "column": {
+          "id": "Ema",
+          "params": {
+            "length": "50",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "operation": {
+        "type": "aboveOrEqual"
+      },
+      "target": "Ema",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Ema",
+          "params": {
+            "length": "50",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "right": {
+        "column": {
+          "id": "Ema",
+          "params": {
+            "length": "150",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "operation": {
+        "type": "aboveOrEqual"
+      },
+      "target": "Ema",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Ema",
+          "params": {
+            "length": "150",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "right": {
+        "column": {
+          "id": "Ema",
+          "params": {
+            "length": "200",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "operation": {
+        "type": "aboveOrEqual"
+      },
+      "target": "Ema",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Price",
+          "params": {}
+        }
+      },
+      "right": {
+        "column": {
+          "id": "High",
+          "params": {
+            "timebased": "Interval52Weeks"
+          }
+        }
+      },
+      "operation": {
+        "type": "belowPercent",
+        "params": {
+          "offsetRangeId": "offset_range_0_5"
+        }
+      },
+      "target": "High",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Performance",
+          "params": {
+            "interval": "Interval3M"
+          }
+        }
+      },
+      "right": {
+        "value": 20
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Performance",
+          "params": {
+            "interval": "Interval6M"
+          }
+        }
+      },
+      "right": {
+        "value": 30
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Volume",
+          "params": {
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "right": {
+        "value": 300000
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    }
+  ],
+  "sort_direction": "asc",
+  "date_created": "2026-01-01T05:25:36.970203Z",
+  "date_updated": "2026-10-12T17:45:01.554765Z",
+  "date_used": "2026-10-12T18:17:25.394306Z",
+  "version": 59,
+  "watchlists": [],
+  "default_custom_column_set": [],
+  "is_shared": false,
+  "is_owner": true,
+  "active_view_mode": "table",
+  "view_mode_settings": {
+    "table": {},
+    "chart": {
+      "grid": {
+        "columns_count": 0,
+        "rows_count": 0
+      },
+      "type": "area",
+      "timeframe": "5D",
+      "indicators": [
+        {
+          "id": "sma50"
+        },
+        {
+          "id": "sma200"
+        },
+        {
+          "id": "volume"
+        }
+      ]
+    },
+    "heatmap": {}
+  }
+}
