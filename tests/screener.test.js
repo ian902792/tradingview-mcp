@@ -67,6 +67,23 @@ describe('buildScanRequest', () => {
     multi.market_settings.markets = ['america', 'canada'];
     assert.throws(() => buildScanRequest(multi), /single-market/);
   });
+
+  it('refuses a primary-listing-only screen instead of returning a wider list', () => {
+    const s = screen();
+    s.market_settings.is_primary_listing = true;
+    assert.throws(() => buildScanRequest(s), /primary listing/);
+  });
+
+  it('sorts by the scanner when asked, so a short limit keeps the true top rows', () => {
+    const { body } = buildScanRequest(screen(), { limit: 10, sort: 'change' });
+    assert.deepEqual(body.sort, { sortBy: 'change', sortOrder: 'desc' });
+    assert.deepEqual(body.range, [0, 10]);
+    assert.equal(buildScanRequest(screen(), { sort: 'change', order: 'asc' }).body.sort.sortOrder, 'asc');
+    // Without an override the screen's own sort is kept.
+    assert.deepEqual(buildScanRequest(screen()).body.sort, { sortBy: 'market_cap_basic', sortOrder: 'desc' });
+    assert.throws(() => buildScanRequest(screen(), { sort: 'pe' }), /Unsupported sort field: pe/);
+    assert.throws(() => buildScanRequest(screen(), { sort: 'change', order: 'up' }), /Unsupported sort order/);
+  });
 });
 
 describe('parseScreenData', () => {

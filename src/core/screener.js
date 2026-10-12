@@ -19,6 +19,8 @@ const SCREEN_ID = /^[A-Za-z0-9]{6,16}$/;
 const SCAN_PATH = 'scan?label-product=screener-stock';
 const MAX_LIMIT = 500;
 const DEFAULT_LIMIT = 200;
+// Scanner fields a caller may sort by instead of the saved screen's own sort.
+const SORTABLE = new Set(['change', 'market_cap_basic', 'volume', 'close']);
 
 // Scanner columns returned per row. `ticker-view` carries description/exchange and the data kind.
 const COLUMNS = [
@@ -140,7 +142,7 @@ function round(value) {
 /**
  * Saved screen (`screen_data`) → scanner request. Pure; throws on anything it cannot translate.
  */
-export function buildScanRequest(screen, { limit = DEFAULT_LIMIT } = {}) {
+export function buildScanRequest(screen, { limit = DEFAULT_LIMIT, sort, order } = {}) {
   if (screen?.screener_key !== 'stock') {
     throw new Error(`Unsupported screener_key: ${screen?.screener_key}`);
   }
@@ -148,7 +150,20 @@ export function buildScanRequest(screen, { limit = DEFAULT_LIMIT } = {}) {
   if (!Array.isArray(markets) || markets.length !== 1) {
     throw new Error('Only single-market screens are supported');
   }
-  const sortBy = requireField(screen.sort_column);
+  // A primary-listing-only screen adds a constraint this module does not translate; ignoring it would
+  // return a wider list than the screen shows.
+  if (screen.market_settings?.is_primary_listing === true) {
+    throw new Error('Unsupported screen setting: primary listing only');
+  }
+  // The saved screen's own sort, unless the caller overrides it.
+  if (sort !== undefined && !SORTABLE.has(sort)) {
+    throw new Error(`Unsupported sort field: ${sort} (use one of ${[...SORTABLE].join(', ')})`);
+  }
+  if (order !== undefined && order !== 'asc' && order !== 'desc') {
+    throw new Error(`Unsupported sort order: ${order} (use asc or desc)`);
+  }
+  const sortBy = sort ?? requireField(screen.sort_column);
+  const ascending = sort !== undefined ? order === 'asc' : screen.sort_direction === 'asc';
   const filter = (screen.filters ?? []).filter((f) => !isInactive(f)).map(translateFilter);
 
   return {
@@ -159,7 +174,7 @@ export function buildScanRequest(screen, { limit = DEFAULT_LIMIT } = {}) {
       ignore_unknown_fields: false,
       options: { lang: 'en' },
       range: [0, limit],
-      sort: { sortBy, sortOrder: screen.sort_direction === 'asc' ? 'asc' : 'desc' },
+      sort: { sortBy, sortOrder: ascending ? 'asc' : 'desc' },
       markets,
       filter2: STOCK_UNIVERSE,
     },
@@ -210,9 +225,11 @@ export function toRow(item) {
 }
 
 /**
- * Reads a saved screen and returns its current rows, in the screen's own sort order.
+ * Reads a saved screen and returns its current rows. Rows come in the screen's own sort order unless
+ * `sort` (a scanner field, see SORTABLE) and `order` override it; the override is applied by the
+ * scanner before `limit`, so a short limit still returns the true top rows by that field.
  */
-export async function read({ id, limit } = {}) {
+export async function read({ id, limit, sort, order } = {}) {
   if (!SCREEN_ID.test(String(id ?? ''))) throw new Error('A screener id is required (the part after /screener/ in its URL)');
   const count = limit === undefined ? DEFAULT_LIMIT : Number(limit);
   if (!Number.isInteger(count) || count < 1 || count > MAX_LIMIT) {
@@ -229,7 +246,7 @@ export async function read({ id, limit } = {}) {
     throw new Error(`Could not load screener ${id} (HTTP ${page?.status ?? 'none'}); is TradingView logged in?`);
   }
   const screen = parseScreenData(page.html);
-  const { market, body } = buildScanRequest(screen, { limit: count });
+  const { market, body } = buildScanRequest(screen, { limit: count, sort, order });
 
   const scan = await evaluateAsync(`
     (async () => {
