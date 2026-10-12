@@ -65,15 +65,22 @@ function fieldOf(column) {
   switch (id) {
     case 'Price': return params.timebased === undefined ? 'close' : null;
     case 'Change': return daily ? 'change' : null;
+    case 'Volume': return daily ? 'volume' : null;
     case 'MarketCap': return 'market_cap_basic';
     case 'PriceToEarnings': return 'price_earnings_ttm';
     case 'QuickRatio': return params.fiscalPeriod === 'fq' ? 'quick_ratio_fq' : null;
     case 'Ema': return daily && /^\d+$/.test(params.length) ? `EMA${params.length}` : null;
     case 'Ma': return daily && /^\d+$/.test(params.length) ? `SMA${params.length}` : null;
     case 'High': return params.timebased === 'Interval52Weeks' ? 'price_52_week_high' : null;
+    case 'Low': return params.timebased === 'Interval52Weeks' ? 'price_52_week_low' : null;
+    case 'Performance': return PERFORMANCE_FIELDS[params.interval] ?? null;
     default: return null;
   }
 }
+
+// Performance columns whose scanner field was checked against TradingView's own scan request
+// for a saved screen (the request the screener page sends for "Performance, 3M/6M above N %").
+const PERFORMANCE_FIELDS = { Interval3M: 'Perf.3M', Interval6M: 'Perf.6M' };
 
 function describe(column) {
   return `${column?.id ?? '?'}${column?.params && Object.keys(column.params).length ? JSON.stringify(column.params) : ''}`;
@@ -109,10 +116,24 @@ function translateFilter(filter) {
   const right = filter.right ?? {};
 
   if (op === 'between') {
-    if (right.left == null || right.right == null) {
-      throw new Error(`Unsupported one-sided range on ${describe(filter.left.column)}`);
+    if (right.left != null && right.right != null) {
+      return { left, operation: 'in_range', right: [right.left, right.right] };
     }
-    return { left, operation: 'in_range', right: [right.left, right.right] };
+    // "N or more" (no upper bound) is the scanner's `egreater`; an upper-only range has not been checked.
+    if (right.left != null && typeof right.left === 'number') {
+      return { left, operation: 'egreater', right: right.left };
+    }
+    throw new Error(`Unsupported one-sided range on ${describe(filter.left.column)}`);
+  }
+  if (op === 'abovePercent') {
+    // "a % or more above the reference": offset_range_<a> → [reference, 1 + a/100]. Two-sided offsets
+    // (offset_range_<a>_<b>) have not been checked against TradingView's own request.
+    const range = /^offset_range_(\d+)$/.exec(filter.operation.params?.offsetRangeId ?? '');
+    if (!range || filter.target !== 'Low') {
+      throw new Error(`Unsupported abovePercent filter on ${describe(filter.left.column)}`);
+    }
+    const reference = requireField(right.column);
+    return { left, operation: 'above%', right: [reference, round(1 + Number(range[1]) / 100)] };
   }
   if (op === 'belowPercent') {
     // "within a..b % below the reference": offset_range_<a>_<b> → [1 - b/100, 1 - a/100] of the field.
@@ -124,8 +145,8 @@ function translateFilter(filter) {
     const [lo, hi] = [1 - Number(range[2]) / 100, 1 - Number(range[1]) / 100];
     return { left, operation: 'in_range%', right: [reference, round(lo), round(hi)] };
   }
-  if (op === 'above' || op === 'below') {
-    const operation = op === 'above' ? 'greater' : 'less';
+  if (op === 'above' || op === 'aboveOrEqual' || op === 'below') {
+    const operation = { above: 'greater', aboveOrEqual: 'egreater', below: 'less' }[op];
     if (filter.target === 'value') {
       if (typeof right.value !== 'number') throw new Error(`Unsupported value on ${describe(filter.left.column)}`);
       return { left, operation, right: right.value };

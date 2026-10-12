@@ -86,6 +86,51 @@ describe('buildScanRequest', () => {
   });
 });
 
+describe('buildScanRequest — Minervini trend template screen', () => {
+  const minervini = () => JSON.parse(readFileSync(join(here, 'fixtures', 'saved_screen_minervini.json'), 'utf8'));
+
+  it('sends the scan request TradingView\'s own screener page sends for the screen', () => {
+    const { market, body } = buildScanRequest(minervini());
+    assert.equal(market, 'america');
+    // Captured live from the screener page (Network.requestWillBeSent) for "STL 美股 Mark Minervini".
+    const expected = [
+      { left: 'EMA50', operation: 'egreater', right: 'EMA150' },
+      { left: 'close', operation: 'above%', right: ['price_52_week_low', 1.3] },
+      { left: 'market_cap_basic', operation: 'egreater', right: 1000000000 },
+      { left: 'EMA150', operation: 'egreater', right: 'EMA200' },
+      { left: 'close', operation: 'egreater', right: 'EMA50' },
+      { left: 'volume', operation: 'greater', right: 300000 },
+      { left: 'Perf.3M', operation: 'greater', right: 20 },
+      { left: 'close', operation: 'in_range%', right: ['price_52_week_high', 0.95, 1] },
+      { left: 'Perf.6M', operation: 'greater', right: 30 },
+    ];
+    assert.deepEqual(body.filter.map(key).sort(), expected.map(key).sort());
+    assert.deepEqual(body.sort, { sortBy: 'volume', sortOrder: 'asc' });
+  });
+
+  it('keeps the screen market for a Taiwan screen', () => {
+    const s = minervini();
+    s.market_settings.markets = ['taiwan'];
+    assert.equal(buildScanRequest(s).market, 'taiwan');
+    assert.deepEqual(buildScanRequest(s).body.markets, ['taiwan']);
+  });
+
+  it('refuses what it has not checked: a two-sided abovePercent, an upper-only range, an unchecked performance window', () => {
+    const a = minervini();
+    a.filters.find((f) => f.operation.type === 'abovePercent').operation.params.offsetRangeId = 'offset_range_30_50';
+    assert.throws(() => buildScanRequest(a), /Unsupported abovePercent filter on Price/);
+
+    const b = minervini();
+    const cap = b.filters.find((f) => f.left.column.id === 'MarketCap');
+    cap.right = { left: null, right: 5000000000 };
+    assert.throws(() => buildScanRequest(b), /Unsupported one-sided range on MarketCap/);
+
+    const c = minervini();
+    c.filters.find((f) => f.left.column.id === 'Performance').left.column.params.interval = 'Interval1M';
+    assert.throws(() => buildScanRequest(c), /Unsupported screener column: Performance/);
+  });
+});
+
 describe('parseScreenData', () => {
   it('reads the object even when strings contain braces and quotes', () => {
     const data = { id: 'abc', title: 'a } "quoted" { title', filters: [] };
