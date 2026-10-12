@@ -1,0 +1,404 @@
+{
+  "id": "W6WUUg3c",
+  "title": "STL 美股漲幅榜",
+  "screener_key": "stock",
+  "market_settings": {
+    "markets": [
+      "america"
+    ],
+    "is_primary_listing": false
+  },
+  "active_column_set": "overview",
+  "sort_column": {
+    "id": "MarketCap",
+    "params": {}
+  },
+  "filters": [
+    {
+      "left": {
+        "column": {
+          "id": "Index",
+          "params": {}
+        }
+      },
+      "right": {
+        "values": []
+      },
+      "type": "CheckboxGroup"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Price",
+          "params": {}
+        }
+      },
+      "right": {
+        "column": {
+          "id": "Ema",
+          "params": {
+            "length": "60",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "Ema",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Change",
+          "params": {
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "right": {
+        "value": 4
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "MarketCap",
+          "params": {}
+        }
+      },
+      "right": {
+        "left": null,
+        "right": null
+      },
+      "operation": {
+        "type": "between"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "PriceToEarnings",
+          "params": {}
+        }
+      },
+      "right": {
+        "left": 0,
+        "right": 500
+      },
+      "operation": {
+        "type": "between"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "EpsDilutedGrowth",
+          "params": {
+            "period": "YoYTTM"
+          }
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "DividendsYield",
+          "params": {
+            "fiscalPeriod": "ttm"
+          }
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Sector",
+          "params": {}
+        }
+      },
+      "right": {
+        "values": []
+      },
+      "type": "CheckboxGroup"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "AnalystRating",
+          "params": {}
+        }
+      },
+      "right": {
+        "values": []
+      },
+      "type": "CheckboxGroup"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Performance",
+          "params": {
+            "interval": "IntervalYTD"
+          }
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "RevenueGrowth",
+          "params": {
+            "period": "YoYTTM"
+          }
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "PriceToEarningsToGrowth",
+          "params": {
+            "fiscalPeriod": "ttm"
+          }
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "ReturnOnEquity",
+          "params": {
+            "fiscalPeriod": "ttm"
+          }
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Beta",
+          "params": {
+            "interval": "Interval5Y"
+          }
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "EarningsRecent",
+          "params": {}
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "type": "Date",
+      "subtype": "relative"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "QuickRatio",
+          "params": {
+            "fiscalPeriod": "fq"
+          }
+        }
+      },
+      "right": {
+        "value": 1
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "value",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Ma",
+          "params": {
+            "length": "60",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "right": {
+        "column": {
+          "id": "Ma",
+          "params": {
+            "length": "120",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "Ma",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Ma",
+          "params": {
+            "length": "120",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "right": {
+        "column": {
+          "id": "Ma",
+          "params": {
+            "length": "250",
+            "resolution": "TimeResolution1D"
+          }
+        }
+      },
+      "operation": {
+        "type": "above"
+      },
+      "target": "Ma",
+      "type": "Condition"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "NewHighSimplified",
+          "params": {}
+        }
+      },
+      "right": {
+        "value": null
+      },
+      "type": "RadioGroup"
+    },
+    {
+      "left": {
+        "column": {
+          "id": "Price",
+          "params": {}
+        }
+      },
+      "right": {
+        "column": {
+          "id": "High",
+          "params": {
+            "timebased": "Interval52Weeks"
+          }
+        }
+      },
+      "operation": {
+        "type": "belowPercent",
+        "params": {
+          "offsetRangeId": "offset_range_0_5"
+        }
+      },
+      "target": "High",
+      "type": "Condition"
+    }
+  ],
+  "sort_direction": "desc",
+  "date_created": "2026-10-12T17:07:12.392606Z",
+  "date_updated": "2026-10-12T17:11:08.676359Z",
+  "date_used": "2026-10-12T17:11:08.676364Z",
+  "version": 59,
+  "watchlists": [],
+  "default_custom_column_set": [],
+  "is_shared": false,
+  "is_owner": true,
+  "active_view_mode": "table",
+  "view_mode_settings": {
+    "table": {},
+    "chart": {
+      "grid": {
+        "columns_count": 0,
+        "rows_count": 0
+      },
+      "type": "area",
+      "timeframe": "5D",
+      "indicators": [
+        {
+          "id": "sma50"
+        },
+        {
+          "id": "sma200"
+        },
+        {
+          "id": "volume"
+        }
+      ]
+    },
+    "heatmap": {}
+  }
+}

@@ -183,6 +183,7 @@ tv pine get/set/compile/analyze/check/save/new/open/list/errors/console
 tv draw shape/list/get/remove/clear
 tv alert list/create/delete
 tv watchlist get/add
+tv screener read --id <saved-screen-id>   # read-only: run a saved stock screen, rows as JSON
 tv indicator add/remove/toggle/set/get
 tv layout list/switch
 tv pane list/layout/focus/symbol
